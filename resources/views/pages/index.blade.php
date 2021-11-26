@@ -143,14 +143,31 @@
                     </div>
                 </div><!-- /.card-header -->
                 <div class="card-body">
-                    <div class="chart" id="sales-chart" style="position: relative; height: 300px;">
-                        <canvas id="sales-chart-canvas" height="300" style="height: 300px;"></canvas>
+                    <div class="chart" id="carp-chart" style="position: relative; height: 300px;">
+                        <canvas id="carp-chart-canvas" height="300" style="height: 300px;"></canvas>
                     </div>
                 </div><!-- /.card-body -->
                 </div>
                 <!-- /.card -->
             </section>
             <!-- right col -->
+            </div>
+            <div class="row">
+                <!-- /.col-md-6 -->
+                <div class="col-lg-12">
+                    <div class="card">
+                    <div class="card-header border-0">
+                        <div class="d-flex justify-content-between">
+                        <h3 class="card-title">CARP</h3>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="position-relative mb-4">
+                        <canvas id="carp-chart" height="200"></canvas>
+                        </div>
+                    </div>
+                </div>
+                <!-- /.card -->
             </div>
             <!-- /.row (main row) -->
         </div><!-- /.container-fluid -->
@@ -179,29 +196,107 @@
     <script src="{{url('assets')}}/plugins/summernote/summernote-bs4.min.js"></script>
     <!-- overlayScrollbars -->
     <script src="{{url('assets')}}/plugins/overlayScrollbars/js/jquery.overlayScrollbars.min.js"></script>
+    <!-- OPTIONAL SCRIPTS -->
+    <script src="{{url('assets')}}/plugins/chart.js/Chart.min.js"></script>
     <!-- AdminLTE dashboard demo (This is only for demo purposes) -->
 
     <script type="text/javascript">
         var is_running = true;
+        var pieChartCanvas = $('#carp-chart-canvas').get(0).getContext('2d')
+        var ticksStyle = {
+            fontColor: '#495057',
+            fontStyle: 'bold'
+        }
+        var mode = 'index'
+        var intersect = true
 
         $(document).ready(function() {
             startCarousel();
+            setInitChart();
+
+            var $carpChart = $('#carp-chart')
+            // eslint-disable-next-line no-unused-vars
+            var carpChart = new Chart($carpChart, {
+                type: 'bar',
+                data: {
+                labels: ['COMMERCIAL', 'CR', 'HR & GA', 'HSE', 'IT', 'KEY ACCOUNT', 'OPERATION', 'PROCUREMENT', 'SALES', 'TRUCKING'],
+                datasets: [
+                    {
+                    backgroundColor: '#007bff',
+                    borderColor: '#007bff',
+                    data: [1000, 2000, 3000, 2500, 2700, 2500, 3000, 2450, 4300, 1233]
+                    },
+                    {
+                    backgroundColor: '#ced4da',
+                    borderColor: '#ced4da',
+                    data: [700, 1700, 2700, 2000, 1800, 1500, 2000, 1000, 2000, 3000, 2500]
+                    }
+                ]
+                },
+                options: {
+                maintainAspectRatio: false,
+                tooltips: {
+                    mode: mode,
+                    intersect: intersect
+                },
+                hover: {
+                    mode: mode,
+                    intersect: intersect
+                },
+                legend: {
+                    display: false
+                },
+                scales: {
+                    yAxes: [{
+                    // display: false,
+                    gridLines: {
+                        display: true,
+                        lineWidth: '4px',
+                        color: 'rgba(0, 0, 0, .2)',
+                        zeroLineColor: 'transparent'
+                    },
+                    ticks: $.extend({
+                        beginAtZero: true,
+
+                        // Include a dollar sign in the ticks
+                        callback: function (value) {
+                        if (value >= 1000) {
+                            value /= 1000
+                            value += 'k'
+                        }
+
+                        return '$' + value
+                        }
+                    }, ticksStyle)
+                    }],
+                    xAxes: [{
+                    display: true,
+                    gridLines: {
+                        display: false
+                    },
+                    ticks: ticksStyle
+                    }]
+                }
+                }
+            })
 
             $('.btnRefresh').on('click', function(e) {
-                $.ajax({
-                    url: "{{url('')}}/carp/data/get-dashboard",
-                    type: 'GET',
-                    dataType: 'json',
-                    success: function(response) {
-                        setChartData(response)
-                    },
-                    error: function() {
-                    },
-                })
+                setInitChart();
             });
         })
 
-        var pieChartCanvas = $('#sales-chart-canvas').get(0).getContext('2d')
+        function setInitChart() {
+            $.ajax({
+                url: "{{url('')}}/carp/data/get-dashboard",
+                type: 'GET',
+                dataType: 'json',
+                success: function(response) {
+                    setChartData(response)
+                },
+                error: function() {
+                },
+            })
+        }
 
         function startCarousel() {
             setInterval(function doSomething() {
